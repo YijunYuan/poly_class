@@ -1,8 +1,13 @@
 #ifndef poly_class_H_INCLUDED
 #define poly_class_H_INCLUDED
+
+#define ROOT_FUNC_ON
+//#define RANDOM_ACCESS_ON
+
 #include<map>
 #include<cmath>
 #include<typeinfo>
+
 typedef long long unsigned ulong;
 using namespace std;
 
@@ -10,41 +15,50 @@ template<typename T>
 class poly_class
 {
 public:
+#ifdef RANDOM_ACCESS_ON
     void inline             check_temp  (                ){
         temp_exist=false;
         if(temp.second!=0)
             core[temp.first]=temp.second;
         return ;
     };
+#endif
 
                             poly_class  (                ){
-        temp_exist=false;
+        #ifdef RANDOM_ACCESS_ON
+            temp_exist=false;
+        #endif
     }
 
                             poly_class  (const poly_class<T>& a){
-        //if(a.temp_exist)a.check_temp();
         core=a.core;
-        temp_exist=a.temp_exist;
-        temp=a.temp;
-        if(temp_exist)check_temp();
+        #ifdef RANDOM_ACCESS_ON
+            temp_exist=a.temp_exist;
+            temp=a.temp;
+            if(temp_exist)check_temp();
+        #endif
     };
 
     ulong                   max_deg     (                ){
-        if(temp_exist)check_temp();
+        #ifdef RANDOM_ACCESS_ON
+            if(temp_exist)check_temp();
+        #endif
         if(core.empty())return 0;
-        typename map<ulong,T>::iterator p;
         p=core.end();p--;
         return p->first;
     };
 
     poly_class<T>&          operator =  (const poly_class<T>&  a){
-        //if(a.temp_exist)a.check_temp();
         core=a.core;
-        temp_exist=a.temp_exist;
-        temp=a.temp;
+        #ifdef RANDOM_ACCESS_ON
+            temp_exist=a.temp_exist;
+            temp=a.temp;
+            if(temp_exist)check_temp();
+        #endif
         return (*this);
     };
 
+#ifdef RANDOM_ACCESS_ON
     T&                      operator [] (ulong          n){
         if(temp_exist)check_temp();
         temp_exist=true;
@@ -52,9 +66,19 @@ public:
         return temp.second;
     };
 
+#else
+    void set_coef(ulong n,T v){
+        core[n]=v;
+    }
+    T                      operator [] (ulong          n){
+        return core[n];
+    };
+#endif
+
     poly_class<T>           operator << (ulong          n){
-        if(temp_exist)check_temp();
-        typename map<ulong,T>::iterator p;
+        #ifdef RANDOM_ACCESS_ON
+            if(temp_exist)check_temp();
+        #endif
         poly_class res;
         for(p=core.begin();p!=core.end();p++){
             res.core[(p->first)+n]=p->second;
@@ -68,8 +92,9 @@ public:
     };
 
     poly_class<T>           operator >> (ulong          n){
-        if(temp_exist)check_temp();
-        typename map<ulong,T>::iterator p;
+        #ifdef RANDOM_ACCESS_ON
+            if(temp_exist)check_temp();
+        #endif
         poly_class res;
         if(core.empty())return res;
         p=core.end();p--;
@@ -101,14 +126,18 @@ public:
     };
 
     poly_class<T>   friend  operator +  (poly_class<T>  a,T             v){
-        if(a.temp_exist)a.check_temp();
+        #ifdef RANDOM_ACCESS_ON
+            if(a.temp_exist)a.check_temp();
+        #endif
         poly_class<T> res=a;//res[0]+=v;
         res[0]=res[0]+v;
         return res;
     };
 
     poly_class<T>   friend  operator +  (T              v,poly_class<T> a){
-        if(a.temp_exist)a.check_temp();
+        #ifdef RANDOM_ACCESS_ON
+            if(a.temp_exist)a.check_temp();
+        #endif
         poly_class<T> res=a;//res[0]+=v;
         res[0]=res[0]+v;
         return res;
@@ -139,16 +168,13 @@ public:
     };
 
     poly_class<T>   friend  operator -  (poly_class<T>  a,T             v){
-        if(a.temp_exist)a.check_temp();
+        #ifdef RANDOM_ACCESS_ON
+            if(a.temp_exist)a.check_temp();
+        #endif
         poly_class<T> res=a;//res[0]+=v;
         res[0]=res[0]-v;
         return res;
     };
-/*
-    poly_class<T>   friend  operator +  (T              v,poly_class<T> a){
-        return a+v;
-    };
-*/
 
     poly_class<T>           operator -= (poly_class<T>  a){
         (*this)=(*this)-a;
@@ -161,21 +187,23 @@ public:
     };
 
     poly_class<T>   friend  operator *  (poly_class<T>  a,T             v){
-        if(a.temp_exist)a.check_temp();
-        typename map<ulong,T>::iterator p;
+        #ifdef RANDOM_ACCESS_ON
+            if(a.temp_exist)a.check_temp();
+        #endif
         poly_class res;if(v==0)return res;
-        for(p=a.core.begin();p!=a.core.end();p++){
-            res.core[p->first]=v*(p->second);
+        for(a.p=a.core.begin();a.p!=a.core.end();a.p++){
+            res.core[a.p->first]=v*(a.p->second);
         }
         return res;
     };
 
     poly_class<T>   friend  operator *  (T              v,poly_class<T> a){
-        if(a.temp_exist)a.check_temp();
-        typename map<ulong,T>::iterator p;
+        #ifdef RANDOM_ACCESS_ON
+            if(a.temp_exist)a.check_temp();
+        #endif
         poly_class res;if(v==0)return res;
-        for(p=a.core.begin();p!=a.core.end();p++){
-            res.core[p->first]=v*(p->second);
+        for(a.p=a.core.begin();a.p!=a.core.end();a.p++){
+            res.core[a.p->first]=v*(a.p->second);
         }
         return res;
     };
@@ -223,11 +251,12 @@ public:
     };
 
     poly_class<T>   friend  operator /  (poly_class<T>  a,T             v){
-        if(a.temp_exist)a.check_temp();
-        typename map<ulong,T>::iterator p;
+        #ifdef RANDOM_ACCESS_ON
+            if(a.temp_exist)a.check_temp();
+        #endif
         poly_class res;//if(v==0)return res;
-        for(p=a.core.begin();p!=a.core.end();p++){
-            res.core[p->first]=(p->second)/v;
+        for(a.p=a.core.begin();a.p!=a.core.end();a.p++){
+            res.core[a.p->first]=(a.p->second)/v;
         }
         return res;
     };
@@ -246,7 +275,7 @@ public:
         if(a_max<b_max||b.core.empty())
             return res;
         if(b_max==0)
-            return a/b[0];
+            return a/b.core[0];
         T tmp=b.core[b_max];
         while(a_max>=b_max){
             res.core[a_max-b_max]=a.core[a_max]/tmp;
@@ -262,14 +291,18 @@ public:
     };
 
     bool            friend  operator == (poly_class<T>  a,poly_class<T> b){
-        if(a.temp_exist)a.check_temp();
-        if(b.temp_exist)b.check_temp();
+        #ifdef RANDOM_ACCESS_ON
+            if(a.temp_exist)a.check_temp();
+            if(b.temp_exist)b.check_temp();
+        #endif
         return a.core==b.core;
     };
 
     bool            friend  operator != (poly_class<T>  a,poly_class<T> b){
-        if(a.temp_exist)a.check_temp();
-        if(b.temp_exist)b.check_temp();
+        #ifdef RANDOM_ACCESS_ON
+            if(a.temp_exist)a.check_temp();
+            if(b.temp_exist)b.check_temp();
+        #endif
         return a.core!=b.core;
     };
 
@@ -285,20 +318,19 @@ public:
     };
 
     poly_class<T>           derivative  (                ){
-        typename map<ulong,T>::iterator p=core.begin();
+        p=core.begin();
         poly_class res;
         if(max_deg()<2){
             res.core[0]=core[1];
             return res;
         }
         if(p->first==0)p++;
-
         for(;p!=core.end();p++){
             res.core[p->first-1]=p->second*p->first;
         }
         return res;
     };
-
+#ifdef ROOT_FUNC_ON
     T                       root        (                ){
         poly_class der=derivative();
         T res=2.71828182845904,tmp=res+1;
@@ -322,9 +354,12 @@ public:
         }
         return res;
     };
+#endif
 
     poly_class<T>   friend  pow         (poly_class<T>  a,ulong         n){
-        if(a.temp_exist)a.check_temp();
+        #ifdef RANDOM_ACCESS_ON
+            if(a.temp_exist)a.check_temp();
+        #endif
         poly_class<T> res;
         res.core[0]=1;
         while (n){
@@ -341,8 +376,10 @@ public:
     };
 
     poly_class<T>   friend  powmod      (poly_class<T>  a,ulong         n,poly_class<T>  m){
-        if(a.temp_exist)a.check_temp();
-        if(m.temp_exist)m.check_temp();
+        #ifdef RANDOM_ACCESS_ON
+            if(a.temp_exist)a.check_temp();
+            if(m.temp_exist)m.check_temp();
+        #endif
         poly_class<T> res;
         res.core[0]=1;
         while (n){
@@ -361,7 +398,9 @@ public:
     friend istream&         operator  >>(istream&      in,poly_class<T>&a){};
 
     friend ostream&         operator  <<(ostream&     out,poly_class<T> a){
-        if(a.temp_exist)a.check_temp();
+        #ifdef RANDOM_ACCESS_ON
+            if(a.temp_exist)a.check_temp();
+        #endif
         ulong i=0;
         out<<'[';
         for(;i<a.max_deg();i++){
@@ -372,8 +411,11 @@ public:
     };
 private:
     map<ulong,T>core;
-    pair<ulong,T>temp;
-    bool temp_exist;
+    #ifdef RANDOM_ACCESS_ON
+        pair<ulong,T>temp;
+        bool temp_exist;
+    #endif
+    typename map<ulong,T>::iterator p;
 };
 
 #endif // poly_class_H_INCLUDED
